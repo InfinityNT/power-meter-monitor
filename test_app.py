@@ -9,7 +9,8 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
 from config import CONFIG
-from tests import PowerMeterSimulator, start_test_server
+from core.simulator import PowerMeterSimulator  # Changed from 'tests'
+from web.static_server import start_static_server as start_test_server  # Changed from 'tests'
 from powermeter import PowerMeterDataManager, PowerMeterHTTPServer
 
 logger = logging.getLogger('powermeter.test')

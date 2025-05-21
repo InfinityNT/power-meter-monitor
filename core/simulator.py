@@ -318,6 +318,22 @@ class PowerMeterSimulator:
             'data_tick_counter': int(time.time() % 60),
             'simulated': True
         }
+        
+    def read_data(self):
+        """
+        Convenience method that calls read_basic_data or read_detailed_data
+        based on configuration
+        
+        Returns:
+        - Dictionary of simulated meter data
+        """
+        from config.settings import CONFIG
+        
+        # Use detailed data if configured, otherwise use basic data
+        if CONFIG.get('DETAILED_DATA', False):
+            return self.read_detailed_data()
+        else:
+            return self.read_basic_data()
     
     def test_connection(self):
         """
