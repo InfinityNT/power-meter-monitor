@@ -1,6 +1,6 @@
 """
 API endpoints for power meter data with authentication
-Updated version of api/endpoints.py
+Updated to protect dashboard serving and fix API connections
 """
 import json
 import binascii
@@ -134,8 +134,8 @@ class PowerMeterHTTPHandler(BaseHTTPRequestHandler):
             self.send_header('Location', '/login.html')
             self.end_headers()
         elif self.path == '/monitor.html':
-            # Serve monitor page (should be protected by JavaScript)
-            self.serve_static_file('monitor.html')
+            # Protected route - check authentication before serving
+            self.handle_protected_dashboard()
         elif self.path == '/login.html':
             self.serve_static_file('login.html')
         elif self.path.startswith('/css/'):
@@ -146,6 +146,33 @@ class PowerMeterHTTPHandler(BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
             self.wfile.write(b'Not found')
+    
+    def handle_protected_dashboard(self):
+        """Handle access to the protected dashboard - check authentication first"""
+        # Check if user has valid session
+        auth_header = self.headers.get('Authorization', '')
+        
+        if not auth_header.startswith('Bearer '):
+            # No auth token, redirect to login
+            self.send_response(302)
+            self.send_header('Location', '/login.html')
+            self.end_headers()
+            return
+        
+        token = auth_header[7:]  # Remove 'Bearer ' prefix
+        session = auth_manager.validate_session(token)
+        
+        if not session:
+            # Invalid session, redirect to login
+            self.send_response(302)
+            self.send_header('Location', '/login.html')
+            self.end_headers()
+            return
+        
+        # Valid session, redirect to dashboard on port 8000
+        self.send_response(302)
+        self.send_header('Location', 'http://localhost:8000/index.html')
+        self.end_headers()
     
     def handle_login(self):
         """Handle user login"""

@@ -27,8 +27,8 @@ class LoginManager {
                 });
                 
                 if (response.ok) {
-                    // Already logged in, redirect
-                    window.location.href = 'monitor.html';
+                    // Already logged in, redirect to dashboard on port 8000
+                    window.location.href = 'http://localhost:8000/index.html';
                     return;
                 }
             } catch (error) {
@@ -114,9 +114,9 @@ class LoginManager {
                 successMessage.style.display = 'block';
                 successMessage.textContent = `Welcome ${data.user.username}! Redirecting...`;
                 
-                // Redirect after short delay
+                // Redirect to dashboard on port 8000 after short delay
                 setTimeout(() => {
-                    window.location.href = 'monitor.html';
+                    window.location.href = 'http://localhost:8000/index.html';
                 }, 1000);
                 
             } else {

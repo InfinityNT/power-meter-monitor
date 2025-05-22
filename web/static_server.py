@@ -1,5 +1,6 @@
 """
 Static file server for web interface
+Updated to suppress duplicate log messages
 """
 import http.server
 import socketserver
@@ -8,6 +9,15 @@ import threading
 import logging
 
 logger = logging.getLogger('powermeter.web.static_server')
+
+class QuietHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    """HTTP request handler that doesn't log every request"""
+    
+    def log_message(self, format, *args):
+        """Override to suppress request logging"""
+        # Only log errors
+        if format.startswith('code 404') or format.startswith('code 500'):
+            logger.warning(f"{self.client_address[0]} - {format % args}")
 
 def serve_static_files(port=8000):
     """
@@ -28,14 +38,22 @@ def serve_static_files(port=8000):
         return
     
     # Change to web directory
+    original_dir = os.getcwd()
     os.chdir(web_dir)
     
-    # Create and start HTTP server
-    handler = http.server.SimpleHTTPRequestHandler
-    httpd = socketserver.TCPServer(("", port), handler)
-    
-    logger.info(f"Serving web interface at http://localhost:{port}/index.html")
-    httpd.serve_forever()
+    try:
+        # Create and start HTTP server with quiet handler
+        handler = QuietHTTPRequestHandler
+        httpd = socketserver.TCPServer(("", port), handler)
+        
+        # Only log startup message if explicitly requested
+        if logger.level <= logging.INFO:
+            logger.info(f"Serving web interface at http://localhost:{port}/index.html")
+        
+        httpd.serve_forever()
+    finally:
+        # Restore original directory
+        os.chdir(original_dir)
 
 def start_static_server(port=8000):
     """

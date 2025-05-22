@@ -11,7 +11,7 @@ sys.path.insert(0, project_root)
 from config import CONFIG
 from core import PowerMeterReader, PowerMeterDataManager, AuthenticationManager
 from api import PowerMeterHTTPServer
-from tests.static_server import start_test_server  # Import the static server function
+from web.static_server import start_static_server
 
 logger = logging.getLogger('powermeter.main')
 
@@ -78,21 +78,30 @@ def main():
     http_server = PowerMeterHTTPServer(CONFIG['HTTP_PORT'], data_manager)
     
     try:
-        # Start the web interface
+        # Start the web interface (suppress the individual server log message)
         web_port = CONFIG.get('WEB_PORT', 8000)
-        start_test_server(web_port)
-        logger.info("Authentication required - Power Monitor available at http://localhost:{}/login.html".format(web_port))
-        logger.info("Default users available:")
-        logger.info("   * admin/admin (full access)")
-        logger.info("   * operator/operator (read/write)")
-        logger.info("   * viewer/viewer (read only)")
-        logger.info("Authentication enabled - use login page to access monitor")
+        
+        # Temporarily increase log level to suppress static server message
+        static_logger = logging.getLogger('powermeter.web.static_server')
+        original_level = static_logger.level
+        static_logger.setLevel(logging.WARNING)
+        
+        start_static_server(web_port)
+        
+        # Restore original log level
+        static_logger.setLevel(original_level)
         
         # Start components
         data_manager.start()
         http_server.start()
         
-        logger.info(f"System running. HTTP API available at http://localhost:{CONFIG['HTTP_PORT']}/")
+        # Single clean startup message
+        logger.info("Power Monitor available at http://localhost:{}/".format(CONFIG['HTTP_PORT']))
+        logger.info("Default users available:")
+        logger.info("   * admin/admin (full access)")
+        logger.info("   * operator/operator (read/write)")
+        logger.info("   * viewer/viewer (read only)")
+        
         logger.info("Press Ctrl+C to exit.")
         
         # Keep main thread alive

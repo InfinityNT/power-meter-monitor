@@ -1,11 +1,11 @@
 /**
  * Authentication check for protected pages
- * Include this at the top of monitor.html
+ * Updated to use correct API URLs
  */
 
 class AuthChecker {
     constructor() {
-        this.apiUrl = 'http://localhost:8080/api';
+        this.apiUrl = 'http://localhost:8080/api';  // API server port
         this.token = sessionStorage.getItem('powermeter_token');
         this.user = null;
     }
@@ -244,7 +244,8 @@ class AuthChecker {
     }
 
     redirectToLogin() {
-        window.location.href = 'login.html';
+        // Redirect to login on the API server port
+        window.location.href = 'http://localhost:8080/login.html';
     }
 }
 
