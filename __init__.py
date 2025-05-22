@@ -18,9 +18,9 @@ __email__ = 'eduardo.murillo@ttelectronics.com'
 __license__ = 'MIT'
 
 # Import key components for easy access
-from powermeter import PowerMeterReader, PowerMeterDataManager, PowerMeterHTTPServer
+from core import PowerMeterReader, PowerMeterDataManager, PowerMeterSimulator
+from api import PowerMeterHTTPServer
 from config import CONFIG
-from tests import PowerMeterSimulator
 
 # Define package exports
 __all__ = [
