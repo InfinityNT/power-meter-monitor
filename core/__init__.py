@@ -9,5 +9,15 @@ from .data_manager import PowerMeterDataManager
 from .reader import PowerMeterReader
 from .simulator import PowerMeterSimulator
 
+# Import authentication components
+from .auth import User, Session, AuthenticationManager
+
 # Define package exports
-__all__ = ['PowerMeterDataManager', 'PowerMeterReader', 'PowerMeterSimulator']
+__all__ = [
+    'PowerMeterDataManager', 
+    'PowerMeterReader', 
+    'PowerMeterSimulator',
+    'User',
+    'Session', 
+    'AuthenticationManager'
+]
