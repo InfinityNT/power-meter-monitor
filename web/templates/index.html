@@ -1,216 +1,234 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Power Meter Monitor</title>
+    <title>Power Monitor - Dashboard</title>
     <link rel="stylesheet" href="css/monitor.css">
 </head>
 <body>
-    <h1>Power Meter Monitor</h1>
-    <p>This page connects to your power meter monitor API and displays real-time readings.</p>
+    <!-- Authentication check will add header here -->
     
-    <button id="refreshBtn">Refresh Readings</button>
-    <div class="status" id="status">Not connected</div>
-    
-    <div class="tabs">
-        <div class="tab active" data-tab="mainTab">Main Readings</div>
-        <div class="tab" data-tab="debugTab">Debug Info</div>
-        <div class="tab" data-tab="registerTab">Register Query</div>
-        <div class="tab" data-tab="rawDataTab">All Data</div>
-    </div>
-    
-    <div id="mainTab" class="tab-content active">
-        <div class="readings">
-            <h2>Current Readings</h2>
-            
-            <div class="grid">
-                <div>
-                    <h3>Power Measurements</h3>
-                    <p>Active Power: <span class="meter-value" id="power_kw">--</span> kW</p>
-                    <p>Reactive Power: <span class="meter-value" id="reactive_power_kvar">--</span> kVAR</p>
-                    <p>Apparent Power: <span class="meter-value" id="apparent_power_kva">--</span> kVA</p>
-                    <p>Energy: <span class="meter-value" id="energy_kwh">--</span> kWh</p>
-                    <p>Power Factor: <span class="meter-value" id="power_factor">--</span></p>
-                </div>
-                
-                <div>
-                    <h3>Electrical Measurements</h3>
-                    <p>Current: <span class="meter-value" id="current_avg">--</span> A</p>
-                    <p>Voltage (L-L): <span class="meter-value" id="voltage_ll_avg">--</span> V</p>
-                    <p>Voltage (L-N): <span class="meter-value" id="voltage_ln_avg">--</span> V</p>
-                    <p>Frequency: <span class="meter-value" id="frequency">--</span> Hz</p>
-                </div>
-            </div>
-            
-            <div class="phases">
-                <div class="phase">
-                    <h3>Phase 1</h3>
-                    <p>Power: <span class="meter-value" id="phase1_power">--</span> kW</p>
-                    <p>Current: <span class="meter-value" id="phase1_current">--</span> A</p>
-                    <p>Voltage: <span class="meter-value" id="phase1_voltage">--</span> V</p>
-                    <p>PF: <span class="meter-value" id="phase1_pf">--</span></p>
-                </div>
-                
-                <div class="phase">
-                    <h3>Phase 2</h3>
-                    <p>Power: <span class="meter-value" id="phase2_power">--</span> kW</p>
-                    <p>Current: <span class="meter-value" id="phase2_current">--</span> A</p>
-                    <p>Voltage: <span class="meter-value" id="phase2_voltage">--</span> V</p>
-                    <p>PF: <span class="meter-value" id="phase2_pf">--</span></p>
-                </div>
-                
-                <div class="phase">
-                    <h3>Phase 3</h3>
-                    <p>Power: <span class="meter-value" id="phase3_power">--</span> kW</p>
-                    <p>Current: <span class="meter-value" id="phase3_current">--</span> A</p>
-                    <p>Voltage: <span class="meter-value" id="phase3_voltage">--</span> V</p>
-                    <p>PF: <span class="meter-value" id="phase3_pf">--</span></p>
-                </div>
-            </div>
-            
-            <p>Last Updated: <span id="timestamp">--</span></p>
+    <div class="container">
+        <p>Real-time power meter monitoring and control interface.</p>
+        
+        <button id="refreshBtn">Refresh Readings</button>
+        <div class="status" id="status">Not connected</div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="mainTab">Main Readings</div>
+            <div class="tab" data-tab="debugTab">Debug Info</div>
+            <div class="tab" data-tab="registerTab">Register Query</div>
+            <div class="tab" data-tab="rawDataTab">All Data</div>
         </div>
-    </div>
-    
-    <div id="debugTab" class="tab-content">
-        <div class="debugging">
-            <h3>Scaling Information</h3>
-            <p>Data Scalar: <span id="data_scalar">--</span></p>
-            <p>Power Multiplier: <span id="power_multiplier">--</span></p>
-            <p>Voltage Multiplier: <span id="voltage_multiplier">--</span></p>
-            <p>Current Multiplier: <span id="current_multiplier">--</span></p>
-            <p>PF Multiplier: <span id="pf_multiplier">--</span></p>
-            <p>Frequency Multiplier: <span id="freq_multiplier">--</span></p>
-            
-            <h3>Raw Register Values</h3>
-            <p>Raw frequency value: <span id="raw_frequency">--</span></p>
-            <p>Raw voltage (L-L): <span id="raw_voltage_ll">--</span></p>
-            <p>Raw voltage (L-N): <span id="raw_voltage_ln">--</span></p>
-            <p>Raw current: <span id="raw_current">--</span></p>
-            <p>Raw power: <span id="raw_power">--</span></p>
-            <p>Raw power factor: <span id="raw_pf">--</span></p>
-        </div>
-    </div>
-    
-    <div id="rawDataTab" class="tab-content">
-        <div class="all-data">
-            <h3>Complete Data from Power Meter</h3>
-            <p>This shows all data retrieved from the power meter API.</p>
-            <pre id="rawDataContent">Loading...</pre>
-        </div>
-    </div>
-
-    <div id="registerTab" class="tab-content">
-        <div class="register-query">
-            <h3>Query Specific Register</h3>
-            <p>Enter a register number to read its value:</p>
-            
-            <div class="register-input">
-                <input type="number" id="registerInput" placeholder="44602" min="40001" max="49999" value="44602">
-                <button id="readRegisterBtn">Read Register</button>
-            </div>
-            
-            <div class="register-result" id="registerResult">
-                <p>Register: <span id="registerNumber">--</span></p>
-                <p>Value: <span id="registerValue">--</span></p>
-                <p>Last Read: <span id="registerTimestamp">--</span></p>
-            </div>
-            
-            <h3>Read Register Range</h3>
-            <p>Read a range of registers:</p>
-            
-            <div class="register-range-input">
-                <label>
-                    Start Register:
-                    <input type="number" id="startRegisterInput" placeholder="44001" min="40001" max="49999" value="44001">
-                </label>
-                <label>
-                    Number of Registers:
-                    <input type="number" id="countRegisterInput" placeholder="10" min="1" max="125" value="10">
-                </label>
-                <button id="readRegisterRangeBtn">Read Registers</button>
-            </div>
-            
-            <div class="register-range-result">
-                <table id="registerTable">
-                    <thead>
-                        <tr>
-                            <th>Register</th>
-                            <th>Value</th>
-                            <th>Hex</th>
-                        </tr>
-                    </thead>
-                    <tbody id="registerTableBody">
-                        <!-- Register values will be inserted here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <h3>Raw Modbus Command</h3>
-            <p>Send a raw Modbus command directly to the meter:</p>
-
-            <div class="modbus-input">
-                <div class="modbus-field-container">
-                    <label>
-                        Device Address:
-                        <input type="number" id="modbusAddress" min="1" max="255" value="1">
-                    </label>
+        
+        <div id="mainTab" class="tab-content active">
+            <div class="readings">
+                <h2>Current Readings</h2>
+                
+                <div class="grid">
+                    <div>
+                        <h3>Power Measurements</h3>
+                        <p>Active Power: <span class="meter-value" id="power_kw">--</span> kW</p>
+                        <p>Reactive Power: <span class="meter-value" id="reactive_power_kvar">--</span> kVAR</p>
+                        <p>Apparent Power: <span class="meter-value" id="apparent_power_kva">--</span> kVA</p>
+                        <p>Energy: <span class="meter-value" id="energy_kwh">--</span> kWh</p>
+                        <p>Power Factor: <span class="meter-value" id="power_factor">--</span></p>
+                    </div>
                     
-                    <label>
-                        Function Code:
-                        <select id="modbusFunctionCode">
-                            <option value="3">03 - Read Holding Registers</option>
-                            <option value="4">04 - Read Input Registers</option>
-                            <option value="6">06 - Write Single Register</option>
-                            <option value="16">16 - Write Multiple Registers</option>
-                        </select>
-                    </label>
+                    <div>
+                        <h3>Electrical Measurements</h3>
+                        <p>Current: <span class="meter-value" id="current_avg">--</span> A</p>
+                        <p>Voltage (L-L): <span class="meter-value" id="voltage_ll_avg">--</span> V</p>
+                        <p>Voltage (L-N): <span class="meter-value" id="voltage_ln_avg">--</span> V</p>
+                        <p>Frequency: <span class="meter-value" id="frequency">--</span> Hz</p>
+                    </div>
                 </div>
                 
-                <div class="modbus-field-container">
-                    <label>
-                        Register Address:
-                        <input type="number" id="modbusRegisterAddress" min="0" max="65535" value="0">
-                    </label>
+                <div class="phases">
+                    <div class="phase">
+                        <h3>Phase 1</h3>
+                        <p>Power: <span class="meter-value" id="phase1_power">--</span> kW</p>
+                        <p>Current: <span class="meter-value" id="phase1_current">--</span> A</p>
+                        <p>Voltage: <span class="meter-value" id="phase1_voltage">--</span> V</p>
+                        <p>PF: <span class="meter-value" id="phase1_pf">--</span></p>
+                    </div>
                     
-                    <label>
-                        Register Count/Value:
-                        <input type="number" id="modbusRegisterCount" min="1" max="125" value="1">
-                    </label>
+                    <div class="phase">
+                        <h3>Phase 2</h3>
+                        <p>Power: <span class="meter-value" id="phase2_power">--</span> kW</p>
+                        <p>Current: <span class="meter-value" id="phase2_current">--</span> A</p>
+                        <p>Voltage: <span class="meter-value" id="phase2_voltage">--</span> V</p>
+                        <p>PF: <span class="meter-value" id="phase2_pf">--</span></p>
+                    </div>
+                    
+                    <div class="phase">
+                        <h3>Phase 3</h3>
+                        <p>Power: <span class="meter-value" id="phase3_power">--</span> kW</p>
+                        <p>Current: <span class="meter-value" id="phase3_current">--</span> A</p>
+                        <p>Voltage: <span class="meter-value" id="phase3_voltage">--</span> V</p>
+                        <p>PF: <span class="meter-value" id="phase3_pf">--</span></p>
+                    </div>
                 </div>
                 
-                <div class="modbus-actions">
-                    <button id="buildModbusCommandBtn">Build Command</button>
-                    <button id="sendModbusCommandBtn">Send Command</button>
-                </div>
+                <p>Last Updated: <span id="timestamp">--</span></p>
             </div>
+        </div>
+        
+        <div id="debugTab" class="tab-content">
+            <div class="debugging">
+                <h3>Scaling Information</h3>
+                <p>Data Scalar: <span id="data_scalar">--</span></p>
+                <p>Power Multiplier: <span id="power_multiplier">--</span></p>
+                <p>Voltage Multiplier: <span id="voltage_multiplier">--</span></p>
+                <p>Current Multiplier: <span id="current_multiplier">--</span></p>
+                <p>PF Multiplier: <span id="pf_multiplier">--</span></p>
+                <p>Frequency Multiplier: <span id="freq_multiplier">--</span></p>
+                
+                <h3>Raw Register Values</h3>
+                <p>Raw frequency value: <span id="raw_frequency">--</span></p>
+                <p>Raw voltage (L-L): <span id="raw_voltage_ll">--</span></p>
+                <p>Raw voltage (L-N): <span id="raw_voltage_ln">--</span></p>
+                <p>Raw current: <span id="raw_current">--</span></p>
+                <p>Raw power: <span id="raw_power">--</span></p>
+                <p>Raw power factor: <span id="raw_pf">--</span></p>
+            </div>
+        </div>
+        
+        <div id="rawDataTab" class="tab-content">
+            <div class="all-data">
+                <h3>Complete Data from Power Meter</h3>
+                <p>This shows all data retrieved from the power meter API.</p>
+                <pre id="rawDataContent">Loading...</pre>
+            </div>
+        </div>
 
-            <div class="modbus-results">
-                <div class="command-display">
-                    <h4>Command Bytes:</h4>
-                    <div id="modbusCommand" class="code-display">--</div>
+        <div id="registerTab" class="tab-content">
+            <div class="register-query">
+                <h3>Query Specific Register</h3>
+                <p>Enter a register number to read its value:</p>
+                
+                <div class="register-input">
+                    <input type="number" id="registerInput" placeholder="44602" min="40001" max="49999" value="44602">
+                    <button id="readRegisterBtn">Read Register</button>
                 </div>
                 
-                <div class="response-display">
-                    <h4>Response:</h4>
-                    <div id="modbusResponse" class="code-display">--</div>
+                <div class="register-result" id="registerResult">
+                    <p>Register: <span id="registerNumber">--</span></p>
+                    <p>Value: <span id="registerValue">--</span></p>
+                    <p>Last Read: <span id="registerTimestamp">--</span></p>
                 </div>
                 
-                <div class="parsed-response">
-                    <h4>Parsed Response:</h4>
-                    <div id="modbusParsedResponse">--</div>
+                <h3>Read Register Range</h3>
+                <p>Read a range of registers:</p>
+                
+                <div class="register-range-input">
+                    <label>
+                        Start Register:
+                        <input type="number" id="startRegisterInput" placeholder="44001" min="40001" max="49999" value="44001">
+                    </label>
+                    <label>
+                        Number of Registers:
+                        <input type="number" id="countRegisterInput" placeholder="10" min="1" max="125" value="10">
+                    </label>
+                    <button id="readRegisterRangeBtn">Read Registers</button>
+                </div>
+                
+                <div class="register-range-result">
+                    <table id="registerTable">
+                        <thead>
+                            <tr>
+                                <th>Register</th>
+                                <th>Value</th>
+                                <th>Hex</th>
+                            </tr>
+                        </thead>
+                        <tbody id="registerTableBody">
+                            <!-- Register values will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="modbusSection" class="admin-only">
+                    <h3>Raw Modbus Command</h3>
+                    <p>Send a raw Modbus command directly to the meter:</p>
+
+                    <div class="modbus-input">
+                        <div class="modbus-field-container">
+                            <label>
+                                Device Address:
+                                <input type="number" id="modbusAddress" min="1" max="255" value="1">
+                            </label>
+                            
+                            <label>
+                                Function Code:
+                                <select id="modbusFunctionCode">
+                                    <option value="3">03 - Read Holding Registers</option>
+                                    <option value="4">04 - Read Input Registers</option>
+                                    <option value="6">06 - Write Single Register</option>
+                                    <option value="16">16 - Write Multiple Registers</option>
+                                </select>
+                            </label>
+                        </div>
+                        
+                        <div class="modbus-field-container">
+                            <label>
+                                Register Address:
+                                <input type="number" id="modbusRegisterAddress" min="0" max="65535" value="0">
+                            </label>
+                            
+                            <label>
+                                Register Count/Value:
+                                <input type="number" id="modbusRegisterCount" min="1" max="125" value="1">
+                            </label>
+                        </div>
+                        
+                        <div class="modbus-actions">
+                            <button id="buildModbusCommandBtn">Build Command</button>
+                            <button id="sendModbusCommandBtn">Send Command</button>
+                        </div>
+                    </div>
+
+                    <div class="modbus-results">
+                        <div class="command-display">
+                            <h4>Command Bytes:</h4>
+                            <div id="modbusCommand" class="code-display">--</div>
+                        </div>
+                        
+                        <div class="response-display">
+                            <h4>Response:</h4>
+                            <div id="modbusResponse" class="code-display">--</div>
+                        </div>
+                        
+                        <div class="parsed-response">
+                            <h4>Parsed Response:</h4>
+                            <div id="modbusParsedResponse">--</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div id="rawDataTab" class="tab-content">
-        <div class="all-data">
-            <h3>Complete Data from Power Meter</h3>
-            <p>This shows all data retrieved from the power meter API.</p>
-            <pre id="rawDataContent">Loading...</pre>
-        </div>
-    </div>
+    <!-- Authentication check MUST be loaded first -->
+    <script src="js/auth-check.js"></script>
     
-    <script src="js/monitor.js"></script>
+    <!-- Your existing monitor script - will be loaded after authentication -->
+    <script>
+        // Wait for authentication before initializing monitor
+        document.addEventListener('authenticationReady', (event) => {
+            console.log('Authentication ready, initializing monitor...');
+            
+            // Now load your existing monitor functionality
+            import('./js/ui.js').then(module => {
+                module.initializeUI();
+                console.log('Monitor dashboard initialized');
+            }).catch(error => {
+                console.error('Error loading monitor UI:', error);
+                // Fallback to your existing monitor.js if ui.js not available
+                const script = document.createElement('script');
+                script.src = 'monitor.js';
+                document.head.appendChild(script);
+            });
+        });
+    </script>
 </body>
 </html>

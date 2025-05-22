@@ -129,11 +129,19 @@ class PowerMeterHTTPHandler(BaseHTTPRequestHandler):
         elif self.path == '/api/auth/sessions':
             self.handle_get_sessions()
         elif self.path == '/' or self.path == '/index.html':
-            self.serve_static_file('index.html')
+            # Redirect root to login page
+            self.send_response(302)
+            self.send_header('Location', '/login.html')
+            self.end_headers()
         elif self.path == '/monitor.html':
+            # Serve monitor page (should be protected by JavaScript)
             self.serve_static_file('monitor.html')
         elif self.path == '/login.html':
             self.serve_static_file('login.html')
+        elif self.path.startswith('/css/'):
+            self.serve_css_file(self.path[5:])  # Remove '/css/' prefix
+        elif self.path.startswith('/js/'):
+            self.serve_js_file(self.path[4:])   # Remove '/js/' prefix
         else:
             self.send_response(404)
             self.end_headers()
@@ -414,12 +422,55 @@ class PowerMeterHTTPHandler(BaseHTTPRequestHandler):
                 
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
+            self.send_header('Cache-Control', 'no-cache')
             self.end_headers()
             self.wfile.write(content)
         except FileNotFoundError:
             self.send_response(404)
             self.end_headers()
             self.wfile.write(b"<html><body><h1>File not found</h1></body></html>")
+    
+    def serve_css_file(self, filename):
+        """Serve CSS files"""
+        css_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            'web', 'templates', 'css', filename
+        )
+        
+        try:
+            with open(css_path, 'rb') as f:
+                content = f.read()
+                
+            self.send_response(200)
+            self.send_header('Content-type', 'text/css')
+            self.send_header('Cache-Control', 'no-cache')
+            self.end_headers()
+            self.wfile.write(content)
+        except FileNotFoundError:
+            self.send_response(404)
+            self.end_headers()
+            self.wfile.write(b'/* CSS file not found */')
+    
+    def serve_js_file(self, filename):
+        """Serve JavaScript files"""
+        js_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            'web', 'templates', 'js', filename
+        )
+        
+        try:
+            with open(js_path, 'rb') as f:
+                content = f.read()
+                
+            self.send_response(200)
+            self.send_header('Content-type', 'application/javascript')
+            self.send_header('Cache-Control', 'no-cache')
+            self.end_headers()
+            self.wfile.write(content)
+        except FileNotFoundError:
+            self.send_response(404)
+            self.end_headers()
+            self.wfile.write(b'// JavaScript file not found')
     
     def log_message(self, format, *args):
         """Override to use our own logging"""
@@ -431,4 +482,4 @@ def cleanup_sessions():
     auth_manager.cleanup_expired_sessions()
 
 # Export for use in other modules
-__all__ = ['PowerMeterHTTPHandler', 'auth_manager', 'cleanup_sessions']
+__all__ = ['PowerMeterHTTPHandler', 'auth_manager', 'cleanup_sessions', 'require_auth']

@@ -9,14 +9,19 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
 from config import CONFIG
-from core import PowerMeterDataManager, PowerMeterSimulator  # Changed from 'tests'
-from web import start_static_server as start_test_server  # Changed from 'tests'
-from api import  PowerMeterHTTPServer
+from core import PowerMeterDataManager, AuthenticationManager
+from core.simulator import PowerMeterSimulator  # Direct import from core
+from api import PowerMeterHTTPServer
+from web.static_server import start_static_server as start_test_server  # Fixed import path
 
 logger = logging.getLogger('powermeter.test')
 
 def main():
     logger.info("Starting power meter test application with simulator")
+    
+    # Create authentication manager
+    auth_manager = AuthenticationManager()
+    logger.info(f"Authentication system initialized with users: {list(auth_manager.users.keys())}")
     
     # Create simulated reader instead of real hardware
     reader = PowerMeterSimulator()
@@ -30,7 +35,8 @@ def main():
                     data = self.reader.read_data()
                     if data is not None:
                         self.meter_data = data
-                        logger.info(f"Updated readings: Power={data.get('system', {}).get('power_kw', 'N/A')}kW")
+                        power = data.get('system', {}).get('power_kw', data.get('power_kw', 'N/A'))
+                        logger.info(f"Updated readings: Power={power}kW (Simulated)")
                 except Exception as e:
                     logger.error(f"Error in meter reading loop: {str(e)}")
                 time.sleep(self.poll_interval)
@@ -44,7 +50,12 @@ def main():
     try:
         # Start test HTML page server
         start_test_server(8000)
-        logger.info("Test page available at http://localhost:8000/monitor.html")
+        logger.info("Authentication required - Test system available at http://localhost:8000/login.html")
+        logger.info("Default users available:")
+        logger.info("   * admin/admin (full access)")
+        logger.info("   * operator/operator (read/write)")  
+        logger.info("   * viewer/viewer (read only)")
+        logger.info("Data is simulated for testing purposes")
         
         # Start components
         data_manager.start()

@@ -11,7 +11,7 @@ sys.path.insert(0, project_root)
 from config import CONFIG
 from core import PowerMeterReader, PowerMeterDataManager, AuthenticationManager
 from api import PowerMeterHTTPServer
-from web.static_server import start_test_server
+from tests.static_server import start_test_server  # Import the static server function
 
 logger = logging.getLogger('powermeter.main')
 
@@ -81,7 +81,11 @@ def main():
         # Start the web interface
         web_port = CONFIG.get('WEB_PORT', 8000)
         start_test_server(web_port)
-        logger.info(f"Web interface available at http://localhost:{web_port}/login.html")
+        logger.info("Authentication required - Power Monitor available at http://localhost:{}/login.html".format(web_port))
+        logger.info("Default users available:")
+        logger.info("   * admin/admin (full access)")
+        logger.info("   * operator/operator (read/write)")
+        logger.info("   * viewer/viewer (read only)")
         logger.info("Authentication enabled - use login page to access monitor")
         
         # Start components
@@ -89,7 +93,6 @@ def main():
         http_server.start()
         
         logger.info(f"System running. HTTP API available at http://localhost:{CONFIG['HTTP_PORT']}/")
-        logger.info("Default users: admin/admin, operator/operator, viewer/viewer")
         logger.info("Press Ctrl+C to exit.")
         
         # Keep main thread alive
